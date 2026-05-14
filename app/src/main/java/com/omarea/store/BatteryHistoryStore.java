@@ -14,7 +14,7 @@ import java.util.ArrayList;
 
 public class BatteryHistoryStore extends SQLiteOpenHelper {
     public BatteryHistoryStore(Context context) {
-        super(context, "battery-history3", null, 1);
+        super(context, "battery-history3", null, 2);
     }
 
     @Override
@@ -27,6 +27,7 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
                     "status int default(-1)," +
                     "mode text," +
                     "io int default(-1)," +
+                    "voltage REAL default(0)," +
                     "package text," +
                     "screen_on INTEGER," +
                     "capacity INTEGER" +
@@ -37,6 +38,12 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        if (oldVersion < 2) {
+            try {
+                db.execSQL("alter table battery_io add column voltage REAL default(0)");
+            } catch (Exception ignored) {
+            }
+        }
     }
 
     public boolean insertHistory(BatteryStatus batteryStatus) {
@@ -44,13 +51,14 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
         getWritableDatabase().beginTransaction();
         try {
             database.execSQL(
-                "insert into battery_io(time, temperature, status, mode, io, package, screen_on, capacity) " +
-                    "values (?, ?, ?, ?, ?, ?, ?, ?)", new Object[]{
+                "insert into battery_io(time, temperature, status, mode, io, voltage, package, screen_on, capacity) " +
+                    "values (?, ?, ?, ?, ?, ?, ?, ?, ?)", new Object[]{
                     "" + batteryStatus.time,
                     batteryStatus.temperature,
                     batteryStatus.status,
                     batteryStatus.mode,
                     batteryStatus.io,
+                    batteryStatus.voltage,
                     batteryStatus.packageName,
                     batteryStatus.screenOn ? 1 : 0,
                     batteryStatus.capacity
@@ -144,7 +152,7 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
         try {
             SQLiteDatabase sqLiteDatabase = getReadableDatabase();
             Cursor cursor = sqLiteDatabase.rawQuery(
-                "select * from (select avg(io) AS io, avg(temperature) as avg, min(temperature) as min, max(temperature) as max, package, mode, count(io) from battery_io where status in (?, ?) and package != ? group by package, mode) r order by io",
+                "select * from (select avg(io) AS io, avg(temperature) as avg, min(temperature) as min, max(temperature) as max, package, mode, count(io), avg(voltage) as voltage from battery_io where status in (?, ?) and package != ? group by package, mode) r order by io",
                 new String[]{
                     "" + BatteryManager.BATTERY_STATUS_DISCHARGING,
                     "" + BatteryManager.BATTERY_STATUS_NOT_CHARGING,
@@ -160,6 +168,7 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
                 batteryAvgStatus.packageName = cursor.getString(4);
                 batteryAvgStatus.mode = cursor.getString(5);
                 batteryAvgStatus.count = cursor.getInt(6);
+                batteryAvgStatus.voltage = cursor.getFloat(7);
                 data.add(batteryAvgStatus);
             }
             cursor.close();

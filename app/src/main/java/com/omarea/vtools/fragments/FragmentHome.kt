@@ -27,6 +27,7 @@ import com.omarea.model.ProcessInfo
 import com.omarea.store.SpfConfig
 import com.omarea.ui.AdapterCpuCores
 import com.omarea.ui.AdapterProcessMini
+import com.omarea.utils.ElectricityUnit
 import com.omarea.vtools.R
 import com.omarea.vtools.activities.*
 import com.omarea.vtools.dialogs.DialogElectricityUnit
@@ -56,6 +57,7 @@ class FragmentHome : androidx.fragment.app.Fragment() {
     private var cpuLoadUtils = CpuLoadUtils()
     private val memoryUtils = MemoryUtils()
     private var mGpuInfo: GpuInfo? = null
+    private val electricityUnit = ElectricityUnit()
 
     private suspend fun forceKSWAPD(mode: Int): String {
         return withContext(Dispatchers.Default) {
@@ -359,7 +361,12 @@ class FragmentHome : androidx.fragment.app.Fragment() {
 
                 home_running_time.text = elapsedRealtimeStr()
                 if (batteryCurrentNow != Long.MIN_VALUE && batteryCurrentNow != Long.MAX_VALUE) {
-                    home_battery_now.text = (batteryCurrentNow / globalSPF.getInt(SpfConfig.GLOBAL_SPF_CURRENT_NOW_UNIT, SpfConfig.GLOBAL_SPF_CURRENT_NOW_UNIT_DEFAULT)).toString() + "mA"
+                    home_battery_now.text = electricityUnit.formatBatteryIO(
+                            context!!,
+                            batteryCurrentNow / globalSPF.getInt(SpfConfig.GLOBAL_SPF_CURRENT_NOW_UNIT, SpfConfig.GLOBAL_SPF_CURRENT_NOW_UNIT_DEFAULT),
+                            true,
+                            "\n"
+                    )
                 } else {
                     home_battery_now.text = "--"
                 }

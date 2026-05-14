@@ -7,6 +7,7 @@ public class BatteryAvgStatus {
     public int maxTemperature = -1;
     public int status = 0;
     public int io = -1;
+    public float voltage = 0;
     public String packageName;
     public String mode;
     public int count;

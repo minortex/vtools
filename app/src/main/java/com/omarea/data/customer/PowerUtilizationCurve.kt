@@ -12,14 +12,16 @@ import com.omarea.model.BatteryStatus
 import com.omarea.scene_mode.ModeSwitcher
 import com.omarea.store.BatteryHistoryStore
 import com.omarea.store.SpfConfig
+import com.omarea.utils.ElectricityUnit
 import java.util.*
 
-class PowerUtilizationCurve(context: Context) : IEventReceiver {
+class PowerUtilizationCurve(private val context: Context) : IEventReceiver {
     private val storage = BatteryHistoryStore(context)
     private val screenState = ScreenState(context)
     private var timer: Timer? = null
     private var batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
     private var globalSPF = context.getSharedPreferences(SpfConfig.GLOBAL_SPF, Context.MODE_PRIVATE)
+    private val electricityUnit = ElectricityUnit()
     companion object {
         // 采样间隔（毫秒）
         public val SAMPLING_INTERVAL: Long = 3000
@@ -107,6 +109,7 @@ class PowerUtilizationCurve(context: Context) : IEventReceiver {
 
         // 电量
         GlobalStatus.batteryCapacity = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+        GlobalStatus.batteryVoltage = electricityUnit.getBatteryVoltage(context)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // 状态
@@ -138,6 +141,7 @@ class PowerUtilizationCurve(context: Context) : IEventReceiver {
                 temperature = GlobalStatus.temperatureCurrent
                 status = GlobalStatus.batteryStatus
                 io = GlobalStatus.batteryCurrentNow.toInt()
+                voltage = electricityUnit.getBatteryVoltage(context).toFloat()
                 screenOn = screenState.isScreenOn()
                 capacity = GlobalStatus.batteryCapacity
             }

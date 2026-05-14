@@ -182,6 +182,7 @@
     <string name="electricity_unit_adj_desc">当前充电速度，除以：</string>
     <string name="electricity_unit_as">显示为：</string>
     <string name="electricity_unit_adj_desc2">充电应显示为正数，放电应显示为负数</string>
+    <string name="electricity_display_both">同时显示功率和毫安</string>
 
     <!--调度配置源选择-->
     <string name="schedule_source">选择配置源</string>

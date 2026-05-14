@@ -18,6 +18,7 @@ import com.omarea.library.device.BatteryCapacity
 import com.omarea.library.shell.BatteryUtils
 import com.omarea.store.BatteryHistoryStore
 import com.omarea.ui.power.AdapterBatteryStats
+import com.omarea.utils.ElectricityUnit
 import com.omarea.vtools.R
 import com.omarea.vtools.dialogs.DialogElectricityUnit
 import kotlinx.android.synthetic.main.activity_power_utilization.*
@@ -87,6 +88,7 @@ class ActivityPowerUtilization : ActivityBase() {
     }
 
     private var batteryUtils = BatteryUtils()
+    private val electricityUnit = ElectricityUnit()
     private val handler = Handler(Looper.getMainLooper())
     private fun updateUI() {
         val level = GlobalStatus.batteryCapacity
@@ -168,9 +170,9 @@ class ActivityPowerUtilization : ActivityBase() {
         handler.post {
             try {
                 battery_max_output.setData(batteryOutputMax.toFloat(), batteryOutputMax - maxOutput.toFloat())
-                battery_max_output_text.text = maxOutput.toString() + " mA"
+                battery_max_output_text.text = electricityUnit.formatBatteryIO(context, maxOutput.toLong(), false, "\n")
                 battery_max_intput.setData(batteryInputMax.toFloat(), batteryInputMax - maxInput.toFloat())
-                battery_max_intput_text.text = maxInput.toString() + " mA"
+                battery_max_intput_text.text = electricityUnit.formatBatteryIO(context, maxInput.toLong(), false, "\n")
                 if (maxTemperature < 0) {
                     battery_max_temperature.setData(batteryTemperatureMax.toFloat(), batteryTemperatureMax.toFloat())
                 } else {

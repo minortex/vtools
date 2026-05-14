@@ -12,6 +12,7 @@ import com.omarea.data.customer.PowerUtilizationCurve.Companion.SAMPLING_INTERVA
 import com.omarea.library.basic.AppInfoLoader
 import com.omarea.model.BatteryAvgStatus
 import com.omarea.scene_mode.ModeSwitcher
+import com.omarea.utils.ElectricityUnit
 import com.omarea.vtools.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -23,6 +24,7 @@ class AdapterBatteryStats(
         private var list: List<BatteryAvgStatus>) : RecyclerView.Adapter<AdapterBatteryStats.ViewHolder>()
 {
     private var appInfoLoader: AppInfoLoader = AppInfoLoader(context)
+    private val electricityUnit = ElectricityUnit()
 
     override fun getItemId(position: Int): Long {
         return position.toLong()
@@ -95,7 +97,14 @@ class AdapterBatteryStats(
                 else -> "#00B78A"
             }))
 
-            itemAvg.text = String.format ("%dmA, %d°C", abs(batteryStats.io), batteryStats.avgTemperature)
+            val avgIO = electricityUnit.formatBatteryIO(
+                    context,
+                    abs(batteryStats.io).toLong(),
+                    false,
+                    "\n",
+                    if (batteryStats.voltage > 0) batteryStats.voltage.toDouble() else electricityUnit.getBatteryVoltage(context)
+            )
+            itemAvg.text = String.format ("%s, %d°C", avgIO, batteryStats.avgTemperature)
             itemMax.text = String.format ("%d°C", batteryStats.maxTemperature)
             itemTimes.text = minutes2Str(samplingInterval * batteryStats.count / 60)
 
