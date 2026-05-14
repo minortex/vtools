@@ -79,13 +79,6 @@ object ThemeSwitch {
             }
             activity.setTheme(themeId)
 
-            if (themeMode.isLightStatusBar) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    activity.window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
-                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    activity.window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                }
-            }
         } else if (theme == 10) {
             val wallpaper = WallpaperManager.getInstance(activity)
             val wallpaperInfo = wallpaper.wallpaperInfo
@@ -107,11 +100,6 @@ object ThemeSwitch {
                     // 浅色的静态壁纸
                     themeMode.isDarkMode = false
                     themeMode.isLightStatusBar = true
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        activity.window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
-                    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        activity.window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                    }
 
                     if (!(activity is ActivityMain)) {
                         activity.window.navigationBarColor = Color.TRANSPARENT
@@ -128,8 +116,33 @@ object ThemeSwitch {
             } else {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
             }
+        } else {
+            themeMode.isDarkMode = false
+            themeMode.isLightStatusBar = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
         }
+        applySystemBarIconColors(activity, themeMode)
         return themeMode
+    }
+
+    @Suppress("DEPRECATION")
+    private fun applySystemBarIconColors(activity: Activity, themeMode: ThemeMode) {
+        val decorView = activity.window.decorView
+        var flags = decorView.systemUiVisibility
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            flags = if (themeMode.isLightStatusBar) {
+                flags or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            } else {
+                flags and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            flags = if (themeMode.isDarkMode) {
+                flags and View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
+            } else {
+                flags or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+            }
+        }
+        decorView.systemUiVisibility = flags
     }
 
     private fun isDarkColor(wallPaper: Drawable): Boolean {
