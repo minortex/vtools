@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
+import android.widget.SeekBar
 import android.widget.Switch
 import androidx.core.content.PermissionChecker
 import com.omarea.common.shell.KeepShellPublic
@@ -82,6 +83,65 @@ class ActivityOtherSettings : ActivityBase() {
         settings_black_notification.setOnClickListener {
             spf.edit().putBoolean(SpfConfig.GLOBAL_NIGHT_BLACK_NOTIFICATION, (it as Switch).isChecked).apply()
         }
+
+        settings_battery_reset_on_unplug.isChecked = spf.getBoolean(SpfConfig.GLOBAL_SPF_BATTERY_RESET_ON_UNPLUG, false)
+        settings_battery_reset_on_unplug.setOnClickListener {
+            spf.edit().putBoolean(SpfConfig.GLOBAL_SPF_BATTERY_RESET_ON_UNPLUG, (it as Switch).isChecked).apply()
+            updateBatteryResetThresholdState()
+        }
+
+        val resetLevel = spf.getInt(SpfConfig.GLOBAL_SPF_BATTERY_RESET_LEVEL, SpfConfig.GLOBAL_SPF_BATTERY_RESET_LEVEL_DEFAULT)
+        settings_battery_reset_level.progress = (resetLevel - 50).coerceIn(0, 50)
+        settings_battery_reset_level_value.text = "${settings_battery_reset_level.progress + 50}%"
+        settings_battery_reset_level.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val value = progress + 50
+                settings_battery_reset_level_value.text = "${value}%"
+                if (fromUser) {
+                    spf.edit().putInt(SpfConfig.GLOBAL_SPF_BATTERY_RESET_LEVEL, value).apply()
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                val value = (seekBar?.progress ?: 35) + 50
+                spf.edit().putInt(SpfConfig.GLOBAL_SPF_BATTERY_RESET_LEVEL, value).apply()
+            }
+        })
+
+        val resetChargeDelta = spf.getInt(SpfConfig.GLOBAL_SPF_BATTERY_RESET_CHARGE_DELTA, SpfConfig.GLOBAL_SPF_BATTERY_RESET_CHARGE_DELTA_DEFAULT)
+        settings_battery_reset_charge_delta.progress = (resetChargeDelta - 1).coerceIn(0, 99)
+        settings_battery_reset_charge_delta_value.text = "${settings_battery_reset_charge_delta.progress + 1}%"
+        settings_battery_reset_charge_delta.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val value = progress + 1
+                settings_battery_reset_charge_delta_value.text = "${value}%"
+                if (fromUser) {
+                    spf.edit().putInt(SpfConfig.GLOBAL_SPF_BATTERY_RESET_CHARGE_DELTA, value).apply()
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                val value = (seekBar?.progress ?: 39) + 1
+                spf.edit().putInt(SpfConfig.GLOBAL_SPF_BATTERY_RESET_CHARGE_DELTA, value).apply()
+            }
+        })
+        updateBatteryResetThresholdState()
+    }
+
+    private fun updateBatteryResetThresholdState() {
+        val enabled = !settings_battery_reset_on_unplug.isChecked
+        settings_battery_reset_level.isEnabled = enabled
+        settings_battery_reset_charge_delta.isEnabled = enabled
+        settings_battery_reset_level.alpha = if (enabled) 1f else 0.45f
+        settings_battery_reset_charge_delta.alpha = if (enabled) 1f else 0.45f
+        settings_battery_reset_level_value.alpha = if (enabled) 1f else 0.45f
+        settings_battery_reset_charge_delta_value.alpha = if (enabled) 1f else 0.45f
     }
 
     private fun checkPermission(context: Context, permission: String): Boolean = PermissionChecker.checkSelfPermission(context, permission) == PermissionChecker.PERMISSION_GRANTED

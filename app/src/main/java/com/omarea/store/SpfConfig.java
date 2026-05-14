@@ -72,6 +72,11 @@ public class SpfConfig {
     public static String GLOBAL_SPF_CURRENT_NOW_UNIT = "global_current_now_unit";
     public static int GLOBAL_SPF_CURRENT_NOW_UNIT_DEFAULT = -1000;
     public static String GLOBAL_SPF_BATTERY_POWER_CURRENT_BOTH = "global_battery_power_current_both";
+    public static String GLOBAL_SPF_BATTERY_RESET_ON_UNPLUG = "global_battery_reset_on_unplug";
+    public static String GLOBAL_SPF_BATTERY_RESET_LEVEL = "global_battery_reset_level";
+    public static int GLOBAL_SPF_BATTERY_RESET_LEVEL_DEFAULT = 85;
+    public static String GLOBAL_SPF_BATTERY_RESET_CHARGE_DELTA = "global_battery_reset_charge_delta";
+    public static int GLOBAL_SPF_BATTERY_RESET_CHARGE_DELTA_DEFAULT = 40;
     public static String GLOBAL_SPF_SCENE_NOTIFICATION = "scene_notification";
     public static String GLOBAL_SPF_FREEZE_ICON_NOTIFY = "freeze_icon_notify";
     public static String GLOBAL_SPF_FREEZE_SUSPEND = "freeze_suspend";

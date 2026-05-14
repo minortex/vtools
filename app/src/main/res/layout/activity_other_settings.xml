@@ -115,6 +115,78 @@
             <LinearLayout style="@style/ListCardItem">
 
                 <Switch
+                    android:id="@+id/settings_battery_reset_on_unplug"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/settings_battery_reset_on_unplug" />
+
+                <TextView
+                    style="@style/textSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/settings_battery_reset_on_unplug_desc" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/activity_vertical_margin"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/textSmall"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_battery_reset_level" />
+
+                    <TextView
+                        android:id="@+id/settings_battery_reset_level_value"
+                        style="@style/textSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="85%" />
+                </LinearLayout>
+
+                <SeekBar
+                    android:id="@+id/settings_battery_reset_level"
+                    style="@style/SceneSeekBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="50" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/activity_vertical_margin"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/textSmall"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_battery_reset_charge_delta" />
+
+                    <TextView
+                        android:id="@+id/settings_battery_reset_charge_delta_value"
+                        style="@style/textSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="40%" />
+                </LinearLayout>
+
+                <SeekBar
+                    android:id="@+id/settings_battery_reset_charge_delta"
+                    style="@style/SceneSeekBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="99" />
+
+            </LinearLayout>
+
+            <LinearLayout style="@style/ListCardItem">
+
+                <Switch
                     android:id="@+id/settings_debug_layer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

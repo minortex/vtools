@@ -57,8 +57,12 @@ class PowerUtilizationCurve(private val context: Context) : IEventReceiver {
             }
             EventType.POWER_DISCONNECTED -> {
                 // 如果电量已经接近充满，或者本次充入电量超过40，清空记录重新开始统计
-                if ((GlobalStatus.batteryCapacity > 85 && GlobalStatus.batteryCapacity - capacityBeforeRecharge > 1) ||
-                    GlobalStatus.batteryCapacity - capacityBeforeRecharge > 40) {
+                val chargeDelta = GlobalStatus.batteryCapacity - capacityBeforeRecharge
+                val resetLevel = globalSPF.getInt(SpfConfig.GLOBAL_SPF_BATTERY_RESET_LEVEL, SpfConfig.GLOBAL_SPF_BATTERY_RESET_LEVEL_DEFAULT)
+                val resetChargeDelta = globalSPF.getInt(SpfConfig.GLOBAL_SPF_BATTERY_RESET_CHARGE_DELTA, SpfConfig.GLOBAL_SPF_BATTERY_RESET_CHARGE_DELTA_DEFAULT)
+                if (globalSPF.getBoolean(SpfConfig.GLOBAL_SPF_BATTERY_RESET_ON_UNPLUG, false) ||
+                    (GlobalStatus.batteryCapacity > resetLevel && chargeDelta > 1) ||
+                    chargeDelta > resetChargeDelta) {
                     storage.clearData()
                 }
                 startUpdate()
