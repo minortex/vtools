@@ -131,6 +131,7 @@ public class XposedInterface implements IXposedHookLoadPackage, IXposedHookZygot
         // 专属选项
         switch (packageName) {
             // 用于检查xposed是否激活
+            case "org.eu.texsd.vtools":
             case "com.omarea.vtools":
             case "com.omarea.vboot":
                 new ActiveCheck().isActive(loadPackageParam);

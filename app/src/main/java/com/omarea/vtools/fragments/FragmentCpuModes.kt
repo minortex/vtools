@@ -223,7 +223,7 @@ class FragmentCpuModes : Fragment() {
                 if (AccessibleServiceHelper().serviceRunning(context!!)) {
                     val intent = Intent(Intent.ACTION_VIEW)
                     intent.setClassName(
-                        "com.omarea.vtools", "com.omarea.vtools.activities.ActivityFreezeApps2"
+                        context!!.packageName, "com.omarea.vtools.activities.ActivityFreezeApps2"
                     )
                     startActivity(intent)
                 } else {

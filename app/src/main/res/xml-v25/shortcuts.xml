@@ -22,7 +22,7 @@
         <intent
             android:action="a"
             android:targetClass="com.omarea.vtools.activities.ActivityFreezeApps2"
-            android:targetPackage="com.omarea.vtools" />
+            android:targetPackage="org.eu.texsd.vtools" />
     </shortcut>
     <shortcut
         android:enabled="true"
@@ -34,7 +34,7 @@
         <intent
             android:action="b"
             android:targetClass="com.omarea.vtools.activities.ActivityApplistions"
-            android:targetPackage="com.omarea.vtools" />
+            android:targetPackage="org.eu.texsd.vtools" />
     </shortcut>
     <shortcut
         android:enabled="true"
@@ -46,6 +46,6 @@
         <intent
             android:action="c"
             android:targetClass="com.omarea.vtools.activities.ActivityProcess"
-            android:targetPackage="com.omarea.vtools" />
+            android:targetPackage="org.eu.texsd.vtools" />
     </shortcut>
 </shortcuts>

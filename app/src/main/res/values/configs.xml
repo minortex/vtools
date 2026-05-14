@@ -4,7 +4,7 @@
         <item>android</item>
         <item>com.android.systemui</item>
         <item>com.miui.freeform</item>
-        <item>com.omarea.vtools</item>
+        <item>org.eu.texsd.vtools</item>
         <item>com.miui.touchassistant</item>
         <item>com.miui.contentextension</item>
         <item>com.miui.systemAdSolution</item>
@@ -173,7 +173,7 @@
 
     <!--待机模式强制排除名单-->
     <string-array name="scene_standby_white_list">
-        <item>com.omarea.vtools</item>
+        <item>org.eu.texsd.vtools</item>
         <item>com.omarea.gesture</item>
         <item>com.omarea.filter</item>
         <item>com.topjohnwu.magisk</item>

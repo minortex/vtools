@@ -55,12 +55,12 @@
             android:name=".SceneUnfreezeProvider"
             android:enabled="true"
             android:exported="false"
-            android:authorities="com.omarea.vtools.SceneUnfreezeProvider" />
+            android:authorities="${applicationId}.SceneUnfreezeProvider" />
         <provider
             android:name=".SceneFreezeProvider"
             android:enabled="true"
             android:exported="true"
-            android:authorities="com.omarea.vtools.SceneFreezeProvider" />
+            android:authorities="${applicationId}.SceneFreezeProvider" />
 
         <activity
             android:name=".activities.ActivityPowerModeTile"
@@ -108,7 +108,7 @@
             android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="com.omarea.vtools.ReceiverCompileState" />
+                <action android:name="org.eu.texsd.vtools.ReceiverCompileState" />
             </intent-filter>
         </receiver>
 

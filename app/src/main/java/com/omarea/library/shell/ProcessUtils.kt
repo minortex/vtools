@@ -94,7 +94,7 @@ class ProcessUtils(private val context: Context) {
             add("toybox-i686");
             add("ps")
             add("top")
-            add("com.omarea.vtools")
+            add("org.eu.texsd.vtools")
         }
     }
 
