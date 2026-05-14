@@ -1,6 +1,7 @@
 package com.omarea.library.shell
 
 import android.content.Context
+import android.os.BatteryManager
 import android.os.Build
 import com.omarea.Scene
 import com.omarea.common.shared.FileWrite
@@ -542,5 +543,62 @@ class BatteryUtils {
             }
         }
         return -1f
+    }
+
+    public fun getRemainingCapacityMAH(context: Context, voltage: Double): Double {
+        val chargeNow = readCapacityValue(arrayOf(
+                "/sys/class/power_supply/bms/charge_now",
+                "/sys/class/power_supply/battery/charge_now"
+        ))
+        if (chargeNow > 0) {
+            return normalizeCapacityMAH(chargeNow)
+        }
+
+        val energyNow = readCapacityValue(arrayOf(
+                "/sys/class/power_supply/bms/energy_now",
+                "/sys/class/power_supply/battery/energy_now"
+        ))
+        if (energyNow > 0 && voltage > 0) {
+            return normalizeEnergyMAH(energyNow, voltage)
+        }
+
+        return try {
+            val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+            val chargeCounter = batteryManager.getLongProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER)
+            if (chargeCounter > 0) {
+                normalizeCapacityMAH(chargeCounter)
+            } else {
+                0.0
+            }
+        } catch (ex: Exception) {
+            0.0
+        }
+    }
+
+    private fun readCapacityValue(paths: Array<String>): Long {
+        for (path in paths) {
+            val value = KernelProrp.getProp(path).trim()
+            if (Regex("^[0-9]+").matches(value)) {
+                return value.toLong()
+            }
+        }
+        return 0
+    }
+
+    private fun normalizeCapacityMAH(value: Long): Double {
+        return if (value > 100000) {
+            value / 1000.0
+        } else {
+            value.toDouble()
+        }
+    }
+
+    private fun normalizeEnergyMAH(value: Long, voltage: Double): Double {
+        val wh = if (value > 100000) {
+            value / 1000000.0
+        } else {
+            value / 1000.0
+        }
+        return wh / voltage * 1000.0
     }
 }

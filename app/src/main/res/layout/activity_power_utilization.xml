@@ -179,6 +179,7 @@
                     android:layout_height="250dp" />
 
                 <LinearLayout
+                    android:id="@+id/battery_base_info"
                     android:layout_marginTop="10dp"
                     android:paddingEnd="@dimen/activity_horizontal_margin"
                     android:gravity="center_vertical"
@@ -241,6 +242,116 @@
                         android:text="--"
                         android:textSize="11dp"
                         android:layout_height="wrap_content" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/battery_cycle_summary"
+                    android:layout_below="@id/battery_base_info"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:background="@drawable/in_card_item"
+                    android:orientation="vertical"
+                    android:padding="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        style="@style/textSmall"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="周期统计" />
+
+                    <LinearLayout
+                        android:layout_marginTop="6dp"
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            style="@style/textSmall"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="平均功耗" />
+
+                        <TextView
+                            android:id="@+id/battery_cycle_avg_power"
+                            style="@style/textSmall"
+                            android:gravity="end"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="--" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_marginTop="4dp"
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            style="@style/textSmall"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="亮屏时间" />
+
+                        <TextView
+                            android:id="@+id/battery_cycle_screen_time"
+                            style="@style/textSmall"
+                            android:gravity="end"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="--" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_marginTop="4dp"
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            style="@style/textSmall"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="电量消耗" />
+
+                        <TextView
+                            android:id="@+id/battery_cycle_capacity_drop"
+                            style="@style/textSmall"
+                            android:gravity="end"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="--" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_marginTop="4dp"
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            style="@style/textSmall"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="预计剩余亮屏" />
+
+                        <TextView
+                            android:id="@+id/battery_cycle_remaining_screen"
+                            style="@style/textSmall"
+                            android:gravity="end"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="数据不足" />
+                    </LinearLayout>
                 </LinearLayout>
             </RelativeLayout>
 

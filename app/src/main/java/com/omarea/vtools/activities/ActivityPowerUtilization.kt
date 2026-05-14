@@ -13,6 +13,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.omarea.data.customer.PowerUtilizationCurve
 import com.omarea.data.GlobalStatus
 import com.omarea.library.device.BatteryCapacity
 import com.omarea.library.shell.BatteryUtils
@@ -94,17 +95,21 @@ class ActivityPowerUtilization : ActivityBase() {
         val level = GlobalStatus.batteryCapacity
         val temp = GlobalStatus.updateBatteryTemperature()
         val kernelCapacity = batteryUtils.getKernelCapacity(level)
-        val batteryMAH = BatteryCapacity().getBatteryCapacity(this).toInt().toString() + "mAh" + "   "
+        val batteryCapacityMAH = BatteryCapacity().getBatteryCapacity(this)
+        val batteryMAH = batteryCapacityMAH.toInt().toString() + "mAh" + "   "
         val voltage = GlobalStatus.batteryVoltage
+        val remainingBatteryMAH = batteryUtils.getRemainingCapacityMAH(this, voltage)
 
         val data = storage.getAvgData()
-        val sampleTime = 6
+        val cycleStats = storage.cycleStats
+        val sampleTime = (PowerUtilizationCurve.SAMPLING_INTERVAL / 1000).toInt()
 
         handler.post {
-            battery_stats.adapter = AdapterBatteryStats(context, (data.filter {
-                // 仅显示运行时间超过2分钟的应用数据，避免误差过大
-                (it.count * sampleTime) > 120
-            }))
+            val appStats = data.filter {
+                // 仅显示运行时间超过约1分钟的应用数据，避免短时间采样误差过大
+                (it.count * sampleTime) >= 60
+            }
+            battery_stats.adapter = AdapterBatteryStats(context, appStats.ifEmpty { data })
 
             view_time.invalidate()
 
@@ -143,9 +148,60 @@ class ActivityPowerUtilization : ActivityBase() {
             battery_voltage.text = "${voltage}v"
             battery_temperature.text =  "$temp°C"
             battery_size.text = batteryMAH
+            updateCycleStats(cycleStats, if (kernelCapacity > -1) kernelCapacity else level.toFloat(), batteryCapacityMAH, remainingBatteryMAH)
         }
 
         updateMaxState()
+    }
+
+    private fun updateCycleStats(stats: com.omarea.model.BatteryCycleStats, currentCapacity: Float, batteryCapacityMAH: Double, remainingBatteryMAH: Double) {
+        if (stats.sampleCount < 2) {
+            battery_cycle_avg_power.text = "--"
+            battery_cycle_screen_time.text = "--"
+            battery_cycle_capacity_drop.text = "--"
+            battery_cycle_remaining_screen.text = "数据不足"
+            return
+        }
+
+        battery_cycle_avg_power.text = if (stats.avgCurrent > 0) {
+            electricityUnit.formatBatteryIO(context, stats.avgCurrent.toLong(), false, " / ", stats.avgVoltage.toDouble())
+        } else {
+            "--"
+        }
+        battery_cycle_screen_time.text = formatDuration(stats.screenOnTime)
+        battery_cycle_capacity_drop.text = "${stats.capacityDrop}%"
+        val estimateCurrent = if (stats.screenOnAvgCurrent > 0) stats.screenOnAvgCurrent else stats.avgCurrent
+        battery_cycle_remaining_screen.text = if (batteryCapacityMAH > 0 && currentCapacity > 0 && estimateCurrent > 0) {
+            val remainingMAH = if (remainingBatteryMAH > 0 && remainingBatteryMAH <= batteryCapacityMAH * 1.3) {
+                remainingBatteryMAH
+            } else {
+                batteryCapacityMAH * currentCapacity / 100.0
+            }
+            val remainingHours = remainingMAH / estimateCurrent
+            formatDuration((remainingHours * 60 * 60 * 1000).toLong())
+        } else {
+            "数据不足"
+        }
+    }
+
+    private fun formatDuration(ms: Long): String {
+        if (ms <= 0) {
+            return "--"
+        }
+        val minutes = (ms / 60000).toInt()
+        if (minutes < 1) {
+            return "<1分钟"
+        }
+        val days = minutes / (60 * 24)
+        val hours = (minutes % (60 * 24)) / 60
+        val mins = minutes % 60
+        return when {
+            days > 0 && hours > 0 -> "${days}天${hours}小时"
+            days > 0 -> "${days}天"
+            hours > 0 && mins > 0 -> "${hours}小时${mins}分钟"
+            hours > 0 -> "${hours}小时"
+            else -> "${mins}分钟"
+        }
     }
 
     private fun updateMaxState() {

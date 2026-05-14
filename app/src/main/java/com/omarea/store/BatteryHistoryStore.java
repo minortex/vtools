@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.os.BatteryManager;
 
 import com.omarea.model.BatteryAvgStatus;
+import com.omarea.model.BatteryCycleStats;
 import com.omarea.model.BatteryStatus;
 import com.omarea.model.PowerHistory;
 
@@ -212,6 +213,116 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
         } catch (Exception ignored) {
         }
         return histories;
+    }
+
+    public BatteryCycleStats getCycleStats() {
+        BatteryCycleStats stats = new BatteryCycleStats();
+        try {
+            SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
+            final Cursor cursor = sqLiteDatabase.rawQuery(
+                "select cast(time as integer), capacity, screen_on, status, io, voltage from battery_io order by cast(time as integer)",
+                new String[]{}
+            );
+
+            Long prevTime = null;
+            Integer prevCapacity = null;
+            Boolean prevScreenOn = null;
+            Integer prevStatus = null;
+            long currentSum = 0;
+            double voltageSum = 0;
+            int dischargeSamples = 0;
+            int voltageSamples = 0;
+            long screenOnCurrentSum = 0;
+            double screenOnVoltageSum = 0;
+            int screenOnDischargeSamples = 0;
+            int screenOnVoltageSamples = 0;
+            int screenOnSamples = 0;
+
+            while (cursor.moveToNext()) {
+                long time = cursor.getLong(0);
+                int capacity = cursor.getInt(1);
+                boolean screenOn = cursor.getInt(2) == 1;
+                int status = cursor.getInt(3);
+                int io = cursor.getInt(4);
+                float voltage = cursor.getFloat(5);
+
+                if (stats.sampleCount == 0) {
+                    stats.startTime = time;
+                }
+                stats.endTime = time;
+                stats.sampleCount++;
+                if (screenOn) {
+                    screenOnSamples++;
+                }
+
+                if (isDischarging(status)) {
+                    currentSum += Math.abs(io);
+                    if (voltage > 0) {
+                        voltageSum += voltage;
+                        voltageSamples++;
+                    }
+                    dischargeSamples++;
+
+                    if (screenOn) {
+                        screenOnCurrentSum += Math.abs(io);
+                        screenOnDischargeSamples++;
+                        if (voltage > 0) {
+                            screenOnVoltageSum += voltage;
+                            screenOnVoltageSamples++;
+                        }
+                    }
+                }
+
+                if (prevTime != null && prevCapacity != null && prevScreenOn != null && prevStatus != null) {
+                    long duration = time - prevTime;
+                    if (duration > 0) {
+                        long measuredDuration = Math.min(duration, 10000);
+                        stats.recordedTime += measuredDuration;
+                        if (prevScreenOn) {
+                            stats.screenOnTime += measuredDuration;
+                        }
+
+                        if (isDischarging(prevStatus) && isDischarging(status) && prevCapacity > capacity) {
+                            int drop = prevCapacity - capacity;
+                            stats.capacityDrop += drop;
+                            if (prevScreenOn) {
+                                stats.screenOnCapacityDrop += drop;
+                            }
+                        }
+                    }
+                }
+
+                prevTime = time;
+                prevCapacity = capacity;
+                prevScreenOn = screenOn;
+                prevStatus = status;
+            }
+
+            stats.screenOnTime = Math.max(stats.screenOnTime, screenOnSamples * 3000L);
+
+            if (dischargeSamples > 0) {
+                stats.avgCurrent = Math.round(currentSum * 1f / dischargeSamples);
+                if (voltageSamples > 0) {
+                    stats.avgVoltage = (float) (voltageSum / voltageSamples);
+                }
+            }
+            if (screenOnDischargeSamples > 0) {
+                stats.screenOnAvgCurrent = Math.round(screenOnCurrentSum * 1f / screenOnDischargeSamples);
+                if (screenOnVoltageSamples > 0) {
+                    stats.screenOnAvgVoltage = (float) (screenOnVoltageSum / screenOnVoltageSamples);
+                }
+            }
+
+            cursor.close();
+            sqLiteDatabase.close();
+        } catch (Exception ignored) {
+        }
+        return stats;
+    }
+
+    private boolean isDischarging(int status) {
+        return status == BatteryManager.BATTERY_STATUS_DISCHARGING ||
+                status == BatteryManager.BATTERY_STATUS_NOT_CHARGING;
     }
 
     public boolean clearData() {
