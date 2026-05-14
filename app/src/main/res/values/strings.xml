@@ -87,6 +87,12 @@
     <string name="settings_battery_reset_charge_delta">充入电量重置阈值</string>
     <string name="settings_black_notification">黑色通知背景</string>
     <string name="settings_black_notification_desc">系统处于夜间模式时，将Scene的常驻通知显示为黑色背景(正常情况无需开启此选项)</string>
+    <string name="settings_home_display">首页显示内容</string>
+    <string name="settings_home_display_desc">控制概况首页里显示哪些信息块，关闭后返回首页立即生效</string>
+    <string name="settings_home_show_memory">内存信息</string>
+    <string name="settings_home_show_gpu">GPU 信息</string>
+    <string name="settings_home_show_cpu">CPU 和进程信息</string>
+    <string name="settings_home_show_battery">电池和设备信息</string>
 
     <string name="menu_home">概况</string>
     <string name="menu_paypal">捐赠打赏</string>

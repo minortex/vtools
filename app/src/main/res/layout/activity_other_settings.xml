@@ -114,6 +114,53 @@
 
             <LinearLayout style="@style/ListCardItem">
 
+                <TextView
+                    style="@style/textTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/settings_home_display" />
+
+                <TextView
+                    style="@style/textSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/settings_home_display_desc" />
+
+                <Switch
+                    android:id="@+id/settings_home_show_memory"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/activity_vertical_margin"
+                    android:minHeight="42dp"
+                    android:text="@string/settings_home_show_memory" />
+
+                <Switch
+                    android:id="@+id/settings_home_show_gpu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:minHeight="42dp"
+                    android:text="@string/settings_home_show_gpu" />
+
+                <Switch
+                    android:id="@+id/settings_home_show_cpu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:minHeight="42dp"
+                    android:text="@string/settings_home_show_cpu" />
+
+                <Switch
+                    android:id="@+id/settings_home_show_battery"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:minHeight="42dp"
+                    android:text="@string/settings_home_show_battery" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/ListCardItem">
+
                 <Switch
                     android:id="@+id/settings_battery_reset_on_unplug"
                     android:layout_width="match_parent"

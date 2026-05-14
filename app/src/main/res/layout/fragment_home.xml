@@ -177,6 +177,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/home_gpu_card"
                 android:background="@drawable/krscript_item_ripple_inactive"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -245,6 +246,7 @@
                 </LinearLayout>
             </LinearLayout>
             <LinearLayout
+                android:id="@+id/home_cpu_card"
                 android:background="@drawable/krscript_item_ripple_inactive"
                 android:layout_margin="4dp"
                 android:layout_width="match_parent"
@@ -353,6 +355,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/home_battery_device"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"

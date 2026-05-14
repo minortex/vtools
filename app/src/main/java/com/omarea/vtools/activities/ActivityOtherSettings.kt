@@ -84,6 +84,11 @@ class ActivityOtherSettings : ActivityBase() {
             spf.edit().putBoolean(SpfConfig.GLOBAL_NIGHT_BLACK_NOTIFICATION, (it as Switch).isChecked).apply()
         }
 
+        bindHomeDisplaySwitch(settings_home_show_memory, SpfConfig.GLOBAL_SPF_HOME_SHOW_MEMORY)
+        bindHomeDisplaySwitch(settings_home_show_gpu, SpfConfig.GLOBAL_SPF_HOME_SHOW_GPU)
+        bindHomeDisplaySwitch(settings_home_show_cpu, SpfConfig.GLOBAL_SPF_HOME_SHOW_CPU)
+        bindHomeDisplaySwitch(settings_home_show_battery, SpfConfig.GLOBAL_SPF_HOME_SHOW_BATTERY)
+
         settings_battery_reset_on_unplug.isChecked = spf.getBoolean(SpfConfig.GLOBAL_SPF_BATTERY_RESET_ON_UNPLUG, false)
         settings_battery_reset_on_unplug.setOnClickListener {
             spf.edit().putBoolean(SpfConfig.GLOBAL_SPF_BATTERY_RESET_ON_UNPLUG, (it as Switch).isChecked).apply()
@@ -132,6 +137,13 @@ class ActivityOtherSettings : ActivityBase() {
             }
         })
         updateBatteryResetThresholdState()
+    }
+
+    private fun bindHomeDisplaySwitch(view: Switch, key: String) {
+        view.isChecked = spf.getBoolean(key, true)
+        view.setOnClickListener {
+            spf.edit().putBoolean(key, (it as Switch).isChecked).apply()
+        }
     }
 
     private fun updateBatteryResetThresholdState() {

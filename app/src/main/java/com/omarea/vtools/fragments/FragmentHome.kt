@@ -213,6 +213,7 @@ class FragmentHome : androidx.fragment.app.Fragment() {
             return
         }
         activity!!.title = getString(R.string.app_name)
+        applyHomeDisplaySettings()
 
         maxFreqList.clear()
         minFreqList.clear()
@@ -225,6 +226,13 @@ class FragmentHome : androidx.fragment.app.Fragment() {
                 }
             }, 0, 1500)
         }
+    }
+
+    private fun applyHomeDisplaySettings() {
+        home_memory?.visibility = if (spf.getBoolean(SpfConfig.GLOBAL_SPF_HOME_SHOW_MEMORY, true)) View.VISIBLE else View.GONE
+        home_gpu_card?.visibility = if (spf.getBoolean(SpfConfig.GLOBAL_SPF_HOME_SHOW_GPU, true)) View.VISIBLE else View.GONE
+        home_cpu_card?.visibility = if (spf.getBoolean(SpfConfig.GLOBAL_SPF_HOME_SHOW_CPU, true)) View.VISIBLE else View.GONE
+        home_battery_device?.visibility = if (spf.getBoolean(SpfConfig.GLOBAL_SPF_HOME_SHOW_BATTERY, true)) View.VISIBLE else View.GONE
     }
 
     private val coreCount = object : TripleCacheValue(Scene.context, "CoreCount") {

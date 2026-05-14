@@ -78,6 +78,10 @@ public class SpfConfig {
     public static String GLOBAL_SPF_BATTERY_RESET_CHARGE_DELTA = "global_battery_reset_charge_delta";
     public static int GLOBAL_SPF_BATTERY_RESET_CHARGE_DELTA_DEFAULT = 40;
     public static String GLOBAL_SPF_SCENE_NOTIFICATION = "scene_notification";
+    public static String GLOBAL_SPF_HOME_SHOW_MEMORY = "global_home_show_memory";
+    public static String GLOBAL_SPF_HOME_SHOW_GPU = "global_home_show_gpu";
+    public static String GLOBAL_SPF_HOME_SHOW_CPU = "global_home_show_cpu";
+    public static String GLOBAL_SPF_HOME_SHOW_BATTERY = "global_home_show_battery";
     public static String GLOBAL_SPF_FREEZE_ICON_NOTIFY = "freeze_icon_notify";
     public static String GLOBAL_SPF_FREEZE_SUSPEND = "freeze_suspend";
     public static String GLOBAL_SPF_FREEZE_TIME_LIMIT = "freeze_suspend_time_limit";
