@@ -6,6 +6,7 @@ import android.content.*
 import android.content.res.Configuration
 import android.graphics.Point
 import android.graphics.Rect
+import android.os.Build
 import android.util.LruCache
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
@@ -25,6 +26,7 @@ import com.omarea.scene_mode.AutoClickInstall
 import com.omarea.scene_mode.AutoSkipAd
 import com.omarea.store.SpfConfig
 import com.omarea.utils.AutoSkipCloudData
+import com.omarea.utils.AccessibleServiceHelper
 import com.omarea.vtools.popup.FloatLogView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -613,7 +615,10 @@ public class AccessibilityScenceMode : AccessibilityService(), IEventReceiver {
             }
             appSwitchHandler = null
             Toast.makeText(applicationContext, "Scene - 辅助服务已关闭！", Toast.LENGTH_SHORT).show()
-            // disableSelf()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                disableSelf()
+            }
+            AccessibleServiceHelper().stopSceneModeService(applicationContext)
             stopSelf()
         }
     }

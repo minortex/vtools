@@ -22,6 +22,7 @@ import com.omarea.permissions.Busybox
 import com.omarea.permissions.CheckRootStatus
 import com.omarea.permissions.WriteSettings
 import com.omarea.store.SpfConfig
+import com.omarea.utils.AccessibleServiceHelper
 import com.omarea.vtools.R
 import kotlinx.android.synthetic.main.activity_start_splash.*
 import kotlinx.coroutines.Dispatchers
@@ -194,6 +195,11 @@ class ActivityStartSplash : Activity() {
                 } else {
                     writeSettings.requestPermission(applicationContext)
                 }
+            }
+
+            if (hasRoot) {
+                start_state_text.text = "检查并激活辅助服务……"
+                AccessibleServiceHelper().startSceneModeService(applicationContext)
             }
             next.run()
         }

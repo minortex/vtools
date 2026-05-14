@@ -22,6 +22,22 @@ class AccessibilityServiceUtils {
     settings put secure accessibility_enabled 1
     */
 
+    fun startService(serviceName: String): Boolean {
+        val servicesStr = KeepShellPublic.doCmdSync("settings get secure enabled_accessibility_services").trim()
+        val services = if (servicesStr.isEmpty() || servicesStr == "null") {
+            ArrayList()
+        } else {
+            ArrayList(servicesStr.split(":").filter { it.isNotEmpty() })
+        }
+
+        if (!services.contains(serviceName)) {
+            services.add(serviceName)
+        }
+
+        KeepShellPublic.doCmdSync("settings put secure enabled_accessibility_services ${services.joinToString(":")}\nsettings put secure accessibility_enabled 1")
+        return true
+    }
+
     fun stopService(serviceName: String): Boolean {
         val servicesStr = KeepShellPublic.doCmdSync("settings get secure enabled_accessibility_services")
         if (servicesStr.contains(serviceName)) {
@@ -35,7 +51,7 @@ class AccessibilityServiceUtils {
                     serviceBuilder.append(service)
                 }
             }
-            KeepShellPublic.doCmdSync("settings put secure enabled_accessibility_services $serviceBuilder\nsettings put secure accessibility_enabled 1")
+            KeepShellPublic.doCmdSync("settings put secure enabled_accessibility_services $serviceBuilder\nsettings put secure accessibility_enabled ${if (serviceBuilder.isEmpty()) 0 else 1}")
         }
         return true
     }
