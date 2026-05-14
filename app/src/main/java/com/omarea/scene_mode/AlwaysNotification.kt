@@ -43,6 +43,10 @@ internal class AlwaysNotification(
     private var notification: Notification? = null
     private var notificationManager: NotificationManager? = null
     private var globalSPF = context.getSharedPreferences(SpfConfig.GLOBAL_SPF, Context.MODE_PRIVATE)
+    private val isNotificationEnabled: Boolean
+        get() {
+            return globalSPF.getBoolean(SpfConfig.GLOBAL_SPF_SCENE_NOTIFICATION, true)
+        }
 
     private fun getAppName(packageName: String): CharSequence? {
         try {
@@ -65,6 +69,11 @@ internal class AlwaysNotification(
 
     //显示通知
     internal fun notify() {
+        if (!showNofity || !isNotificationEnabled) {
+            hideNotify()
+            return
+        }
+
         try {
             var currentMode = getCurrentPowerMode()
             if (currentMode.length == 0) {
@@ -84,7 +93,8 @@ internal class AlwaysNotification(
     }
 
     private fun notifyPowerModeChange(packageName: String, mode: String) {
-        if (!showNofity) {
+        if (!showNofity || !isNotificationEnabled) {
+            hideNotify()
             return
         }
 
@@ -168,7 +178,7 @@ internal class AlwaysNotification(
 
     internal fun setNotify(show: Boolean) {
         this.showNofity = show
-        if (!show) {
+        if (!show || !isNotificationEnabled) {
             hideNotify()
         } else {
             notify()

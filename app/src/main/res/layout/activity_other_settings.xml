@@ -84,6 +84,19 @@
                 </LinearLayout>
 
                 <Switch
+                    android:id="@+id/settings_scene_notification"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/activity_vertical_margin"
+                    android:text="@string/settings_scene_notification" />
+
+                <TextView
+                    style="@style/textSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/settings_scene_notification_desc" />
+
+                <Switch
                     android:id="@+id/settings_black_notification"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

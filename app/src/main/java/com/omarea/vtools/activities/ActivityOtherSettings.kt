@@ -72,6 +72,12 @@ class ActivityOtherSettings : ActivityBase() {
             spf.edit().putBoolean(SpfConfig.GLOBAL_SPF_AUTO_EXIT, (it as Switch).isChecked).apply()
         }
 
+        settings_scene_notification.isChecked = spf.getBoolean(SpfConfig.GLOBAL_SPF_SCENE_NOTIFICATION, true)
+        settings_scene_notification.setOnClickListener {
+            spf.edit().putBoolean(SpfConfig.GLOBAL_SPF_SCENE_NOTIFICATION, (it as Switch).isChecked).apply()
+            EventBus.publish(EventType.SCENE_MODE_ACTION)
+        }
+
         settings_black_notification.isChecked = spf.getBoolean(SpfConfig.GLOBAL_NIGHT_BLACK_NOTIFICATION, false)
         settings_black_notification.setOnClickListener {
             spf.edit().putBoolean(SpfConfig.GLOBAL_NIGHT_BLACK_NOTIFICATION, (it as Switch).isChecked).apply()
