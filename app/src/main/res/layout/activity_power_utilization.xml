@@ -272,7 +272,7 @@
                             android:layout_width="0dp"
                             android:layout_weight="1"
                             android:layout_height="wrap_content"
-                            android:text="平均功耗" />
+                            android:text="亮屏平均功耗" />
 
                         <TextView
                             android:id="@+id/battery_cycle_avg_power"
@@ -330,68 +330,10 @@
                             android:layout_width="0dp"
                             android:layout_weight="1"
                             android:layout_height="wrap_content"
-                            android:text="熄屏时间" />
-
-                        <TextView
-                            android:id="@+id/battery_cycle_screen_off_time"
-                            style="@style/textSmall"
-                            android:gravity="end"
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:layout_height="wrap_content"
-                            android:text="--" />
-                    </LinearLayout>
-
-                    <View
-                        android:layout_marginTop="6dp"
-                        android:layout_marginBottom="6dp"
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#16808080" />
-
-                    <LinearLayout
-                        android:orientation="horizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <TextView
-                            style="@style/textSmall"
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:layout_height="wrap_content"
-                            android:text="电量消耗" />
+                            android:text="亮屏耗电" />
 
                         <TextView
                             android:id="@+id/battery_cycle_capacity_drop"
-                            style="@style/textSmall"
-                            android:gravity="end"
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:layout_height="wrap_content"
-                            android:text="--" />
-                    </LinearLayout>
-
-                    <View
-                        android:layout_marginTop="6dp"
-                        android:layout_marginBottom="6dp"
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#16808080" />
-
-                    <LinearLayout
-                        android:orientation="horizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <TextView
-                            style="@style/textSmall"
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:layout_height="wrap_content"
-                            android:text="熄屏耗电" />
-
-                        <TextView
-                            android:id="@+id/battery_cycle_screen_off_capacity_drop"
                             style="@style/textSmall"
                             android:gravity="end"
                             android:layout_width="0dp"
@@ -427,6 +369,64 @@
                             android:layout_weight="1"
                             android:layout_height="wrap_content"
                             android:text="数据不足" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_marginTop="6dp"
+                        android:layout_marginBottom="6dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#16808080" />
+
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            style="@style/textSmall"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="熄屏时间" />
+
+                        <TextView
+                            android:id="@+id/battery_cycle_screen_off_time"
+                            style="@style/textSmall"
+                            android:gravity="end"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="--" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_marginTop="6dp"
+                        android:layout_marginBottom="6dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#16808080" />
+
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            style="@style/textSmall"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="熄屏耗电" />
+
+                        <TextView
+                            android:id="@+id/battery_cycle_screen_off_capacity_drop"
+                            style="@style/textSmall"
+                            android:gravity="end"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="--" />
                     </LinearLayout>
                 </LinearLayout>
             </RelativeLayout>

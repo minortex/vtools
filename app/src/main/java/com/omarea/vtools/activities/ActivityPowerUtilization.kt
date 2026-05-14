@@ -165,14 +165,14 @@ class ActivityPowerUtilization : ActivityBase() {
             return
         }
 
-        battery_cycle_avg_power.text = if (stats.avgCurrent > 0) {
-            electricityUnit.formatBatteryIO(context, stats.avgCurrent.toLong(), false, " / ", stats.avgVoltage.toDouble())
+        battery_cycle_avg_power.text = if (stats.screenOnAvgCurrent > 0) {
+            electricityUnit.formatBatteryIO(context, stats.screenOnAvgCurrent.toLong(), false, " / ", stats.screenOnAvgVoltage.toDouble())
         } else {
             "--"
         }
         battery_cycle_screen_time.text = formatDuration(stats.screenOnTime)
         battery_cycle_screen_off_time.text = formatDuration(stats.screenOffTime)
-        battery_cycle_capacity_drop.text = "${stats.capacityDrop}%"
+        battery_cycle_capacity_drop.text = "${stats.screenOnCapacityDrop}%"
         battery_cycle_screen_off_capacity_drop.text = "${stats.screenOffCapacityDrop}%"
         val estimateCurrent = if (stats.screenOnAvgCurrent > 0) stats.screenOnAvgCurrent else stats.avgCurrent
         battery_cycle_remaining_screen.text = if (batteryCapacityMAH > 0 && currentCapacity > 0 && estimateCurrent > 0) {

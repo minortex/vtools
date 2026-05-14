@@ -153,7 +153,7 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
         try {
             SQLiteDatabase sqLiteDatabase = getReadableDatabase();
             Cursor cursor = sqLiteDatabase.rawQuery(
-                "select * from (select avg(io) AS io, avg(temperature) as avg, min(temperature) as min, max(temperature) as max, package, mode, count(io), avg(voltage) as voltage from battery_io where status in (?, ?) and package != ? group by package, mode) r order by io",
+                "select * from (select avg(io) AS io, avg(temperature) as avg, min(temperature) as min, max(temperature) as max, package, mode, count(io), avg(voltage) as voltage from battery_io where status in (?, ?) and package != ? and screen_on = 1 group by package, mode) r order by io",
                 new String[]{
                     "" + BatteryManager.BATTERY_STATUS_DISCHARGING,
                     "" + BatteryManager.BATTERY_STATUS_NOT_CHARGING,
@@ -237,7 +237,6 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
             int screenOnDischargeSamples = 0;
             int screenOnVoltageSamples = 0;
             int screenOnSamples = 0;
-            int screenOffSamples = 0;
 
             while (cursor.moveToNext()) {
                 long time = cursor.getLong(0);
@@ -254,8 +253,6 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
                 stats.sampleCount++;
                 if (screenOn) {
                     screenOnSamples++;
-                } else {
-                    screenOffSamples++;
                 }
 
                 if (isDischarging(status)) {
@@ -306,7 +303,6 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
             }
 
             stats.screenOnTime = Math.max(stats.screenOnTime, screenOnSamples * 3000L);
-            stats.screenOffTime = Math.max(stats.screenOffTime, screenOffSamples * 3000L);
 
             if (dischargeSamples > 0) {
                 stats.avgCurrent = Math.round(currentSum * 1f / dischargeSamples);
