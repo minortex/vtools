@@ -101,7 +101,7 @@ class AdapterBatteryStats(
                     context,
                     abs(batteryStats.io).toLong(),
                     false,
-                    "\n",
+                    " / ",
                     if (batteryStats.voltage > 0) batteryStats.voltage.toDouble() else electricityUnit.getBatteryVoltage(context)
             )
             itemAvg.text = String.format ("%s, %d°C", avgIO, batteryStats.avgTemperature)
