@@ -276,7 +276,7 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
                 if (prevTime != null && prevCapacity != null && prevScreenOn != null && prevStatus != null) {
                     long duration = time - prevTime;
                     if (duration > 0) {
-                        long measuredDuration = Math.min(duration, 10000);
+                        long measuredDuration = prevScreenOn ? Math.min(duration, 10000) : duration;
                         stats.recordedTime += measuredDuration;
                         if (prevScreenOn) {
                             stats.screenOnTime += measuredDuration;

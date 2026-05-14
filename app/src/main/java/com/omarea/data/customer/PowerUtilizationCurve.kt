@@ -49,7 +49,7 @@ class PowerUtilizationCurve(private val context: Context) : IEventReceiver {
             }
             EventType.SCREEN_OFF -> {
                 cancelUpdate()
-                saveLog()
+                saveLog(false)
             }
             EventType.POWER_CONNECTED -> {
                 capacityBeforeRecharge = GlobalStatus.batteryCapacity
@@ -122,7 +122,7 @@ class PowerUtilizationCurve(private val context: Context) : IEventReceiver {
         GlobalStatus.updateBatteryTemperature() // 触发温度数据更新
     }
 
-    private fun saveLog() {
+    private fun saveLog(screenOnOverride: Boolean? = null) {
         if(GlobalStatus.batteryCapacity < 1 || GlobalStatus.batteryStatus == BatteryManager.BATTERY_STATUS_UNKNOWN) {
             updateBatteryStatus()
         } else {
@@ -142,7 +142,7 @@ class PowerUtilizationCurve(private val context: Context) : IEventReceiver {
                 status = GlobalStatus.batteryStatus
                 io = GlobalStatus.batteryCurrentNow.toInt()
                 voltage = electricityUnit.getBatteryVoltage(context).toFloat()
-                screenOn = screenState.isScreenOn()
+                screenOn = screenOnOverride ?: screenState.isScreenOn()
                 capacity = GlobalStatus.batteryCapacity
             }
             status.packageName = ModeSwitcher.getCurrentPowermodeApp()
