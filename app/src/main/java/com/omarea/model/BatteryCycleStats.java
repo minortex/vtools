@@ -14,4 +14,6 @@ public class BatteryCycleStats {
     public float avgVoltage = 0;
     public int screenOnAvgCurrent = 0;
     public float screenOnAvgVoltage = 0;
+    public double screenOnConsumedMAH = 0;
+    public double screenOffConsumedMAH = 0;
 }

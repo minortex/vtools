@@ -172,8 +172,8 @@ class ActivityPowerUtilization : ActivityBase() {
         }
         battery_cycle_screen_time.text = formatDuration(stats.screenOnTime)
         battery_cycle_screen_off_time.text = formatDuration(stats.screenOffTime)
-        battery_cycle_capacity_drop.text = "${stats.screenOnCapacityDrop}%"
-        battery_cycle_screen_off_capacity_drop.text = "${stats.screenOffCapacityDrop}%"
+        battery_cycle_capacity_drop.text = formatConsumedCapacity(stats.screenOnConsumedMAH, stats.screenOnCapacityDrop, batteryCapacityMAH)
+        battery_cycle_screen_off_capacity_drop.text = formatConsumedCapacity(stats.screenOffConsumedMAH, stats.screenOffCapacityDrop, batteryCapacityMAH)
         val estimateCurrent = if (stats.screenOnAvgCurrent > 0) stats.screenOnAvgCurrent else stats.avgCurrent
         battery_cycle_remaining_screen.text = if (batteryCapacityMAH > 0 && currentCapacity > 0 && estimateCurrent > 0) {
             val remainingMAH = if (remainingBatteryMAH > 0 && remainingBatteryMAH <= batteryCapacityMAH * 1.3) {
@@ -186,6 +186,18 @@ class ActivityPowerUtilization : ActivityBase() {
         } else {
             "数据不足"
         }
+    }
+
+    private fun formatConsumedCapacity(consumedMAH: Double, fallbackDrop: Int, batteryCapacityMAH: Double): String {
+        if (consumedMAH > 0 && batteryCapacityMAH > 0) {
+            val percent = consumedMAH * 100.0 / batteryCapacityMAH
+            return if (percent < 0.1) {
+                String.format(Locale.getDefault(), "%.0fmAh", consumedMAH)
+            } else {
+                String.format(Locale.getDefault(), "%.1f%%", percent)
+            }
+        }
+        return "${fallbackDrop}%"
     }
 
     private fun formatDuration(ms: Long): String {

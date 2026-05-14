@@ -8,6 +8,7 @@ import com.omarea.data.EventType
 import com.omarea.data.GlobalStatus
 import com.omarea.data.IEventReceiver
 import com.omarea.library.basic.ScreenState
+import com.omarea.library.shell.BatteryUtils
 import com.omarea.model.BatteryStatus
 import com.omarea.scene_mode.ModeSwitcher
 import com.omarea.store.BatteryHistoryStore
@@ -146,6 +147,7 @@ class PowerUtilizationCurve(private val context: Context) : IEventReceiver {
                 status = GlobalStatus.batteryStatus
                 io = GlobalStatus.batteryCurrentNow.toInt()
                 voltage = electricityUnit.getBatteryVoltage(context).toFloat()
+                remainingMAH = BatteryUtils().getRemainingCapacityMAH(context, voltage.toDouble())
                 screenOn = screenOnOverride ?: screenState.isScreenOn()
                 capacity = GlobalStatus.batteryCapacity
             }

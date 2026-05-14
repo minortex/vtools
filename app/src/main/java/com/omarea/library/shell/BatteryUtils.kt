@@ -548,7 +548,9 @@ class BatteryUtils {
     public fun getRemainingCapacityMAH(context: Context, voltage: Double): Double {
         val chargeNow = readCapacityValue(arrayOf(
                 "/sys/class/power_supply/bms/charge_now",
-                "/sys/class/power_supply/battery/charge_now"
+                "/sys/class/power_supply/battery/charge_now",
+                "/sys/class/power_supply/bms/charge_counter",
+                "/sys/class/power_supply/battery/charge_counter"
         ))
         if (chargeNow > 0) {
             return normalizeCapacityMAH(chargeNow)

@@ -15,7 +15,7 @@ import java.util.ArrayList;
 
 public class BatteryHistoryStore extends SQLiteOpenHelper {
     public BatteryHistoryStore(Context context) {
-        super(context, "battery-history3", null, 2);
+        super(context, "battery-history3", null, 3);
     }
 
     @Override
@@ -29,6 +29,7 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
                     "mode text," +
                     "io int default(-1)," +
                     "voltage REAL default(0)," +
+                    "remaining_mah REAL default(0)," +
                     "package text," +
                     "screen_on INTEGER," +
                     "capacity INTEGER" +
@@ -45,6 +46,12 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
             } catch (Exception ignored) {
             }
         }
+        if (oldVersion < 3) {
+            try {
+                db.execSQL("alter table battery_io add column remaining_mah REAL default(0)");
+            } catch (Exception ignored) {
+            }
+        }
     }
 
     public boolean insertHistory(BatteryStatus batteryStatus) {
@@ -52,14 +59,15 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
         getWritableDatabase().beginTransaction();
         try {
             database.execSQL(
-                "insert into battery_io(time, temperature, status, mode, io, voltage, package, screen_on, capacity) " +
-                    "values (?, ?, ?, ?, ?, ?, ?, ?, ?)", new Object[]{
+                "insert into battery_io(time, temperature, status, mode, io, voltage, remaining_mah, package, screen_on, capacity) " +
+                    "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", new Object[]{
                     "" + batteryStatus.time,
                     batteryStatus.temperature,
                     batteryStatus.status,
                     batteryStatus.mode,
                     batteryStatus.io,
                     batteryStatus.voltage,
+                    batteryStatus.remainingMAH,
                     batteryStatus.packageName,
                     batteryStatus.screenOn ? 1 : 0,
                     batteryStatus.capacity
@@ -220,7 +228,7 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
         try {
             SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
             final Cursor cursor = sqLiteDatabase.rawQuery(
-                "select cast(time as integer), capacity, screen_on, status, io, voltage from battery_io order by cast(time as integer)",
+                "select cast(time as integer), capacity, screen_on, status, io, voltage, remaining_mah from battery_io order by cast(time as integer)",
                 new String[]{}
             );
 
@@ -228,6 +236,7 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
             Integer prevCapacity = null;
             Boolean prevScreenOn = null;
             Integer prevStatus = null;
+            Double prevRemainingMAH = null;
             long currentSum = 0;
             double voltageSum = 0;
             int dischargeSamples = 0;
@@ -245,6 +254,7 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
                 int status = cursor.getInt(3);
                 int io = cursor.getInt(4);
                 float voltage = cursor.getFloat(5);
+                double remainingMAH = cursor.getDouble(6);
 
                 if (stats.sampleCount == 0) {
                     stats.startTime = time;
@@ -293,6 +303,16 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
                                 stats.screenOffCapacityDrop += drop;
                             }
                         }
+                        if (isDischarging(prevStatus) && isDischarging(status) &&
+                                prevRemainingMAH != null && prevRemainingMAH > 0 && remainingMAH > 0 &&
+                                prevRemainingMAH > remainingMAH) {
+                            double consumedMAH = prevRemainingMAH - remainingMAH;
+                            if (prevScreenOn) {
+                                stats.screenOnConsumedMAH += consumedMAH;
+                            } else {
+                                stats.screenOffConsumedMAH += consumedMAH;
+                            }
+                        }
                     }
                 }
 
@@ -300,6 +320,7 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
                 prevCapacity = capacity;
                 prevScreenOn = screenOn;
                 prevStatus = status;
+                prevRemainingMAH = remainingMAH;
             }
 
             stats.screenOnTime = Math.max(stats.screenOnTime, screenOnSamples * 3000L);
