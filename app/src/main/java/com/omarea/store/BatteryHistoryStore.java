@@ -237,6 +237,7 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
             int screenOnDischargeSamples = 0;
             int screenOnVoltageSamples = 0;
             int screenOnSamples = 0;
+            int screenOffSamples = 0;
 
             while (cursor.moveToNext()) {
                 long time = cursor.getLong(0);
@@ -253,6 +254,8 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
                 stats.sampleCount++;
                 if (screenOn) {
                     screenOnSamples++;
+                } else {
+                    screenOffSamples++;
                 }
 
                 if (isDischarging(status)) {
@@ -280,6 +283,8 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
                         stats.recordedTime += measuredDuration;
                         if (prevScreenOn) {
                             stats.screenOnTime += measuredDuration;
+                        } else {
+                            stats.screenOffTime += measuredDuration;
                         }
 
                         if (isDischarging(prevStatus) && isDischarging(status) && prevCapacity > capacity) {
@@ -287,6 +292,8 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
                             stats.capacityDrop += drop;
                             if (prevScreenOn) {
                                 stats.screenOnCapacityDrop += drop;
+                            } else {
+                                stats.screenOffCapacityDrop += drop;
                             }
                         }
                     }
@@ -299,6 +306,7 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
             }
 
             stats.screenOnTime = Math.max(stats.screenOnTime, screenOnSamples * 3000L);
+            stats.screenOffTime = Math.max(stats.screenOffTime, screenOffSamples * 3000L);
 
             if (dischargeSamples > 0) {
                 stats.avgCurrent = Math.round(currentSum * 1f / dischargeSamples);

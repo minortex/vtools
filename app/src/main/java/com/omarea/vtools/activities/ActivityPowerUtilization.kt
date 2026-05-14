@@ -158,7 +158,9 @@ class ActivityPowerUtilization : ActivityBase() {
         if (stats.sampleCount < 2) {
             battery_cycle_avg_power.text = "--"
             battery_cycle_screen_time.text = "--"
+            battery_cycle_screen_off_time.text = "--"
             battery_cycle_capacity_drop.text = "--"
+            battery_cycle_screen_off_capacity_drop.text = "--"
             battery_cycle_remaining_screen.text = "数据不足"
             return
         }
@@ -169,7 +171,9 @@ class ActivityPowerUtilization : ActivityBase() {
             "--"
         }
         battery_cycle_screen_time.text = formatDuration(stats.screenOnTime)
+        battery_cycle_screen_off_time.text = formatDuration(stats.screenOffTime)
         battery_cycle_capacity_drop.text = "${stats.capacityDrop}%"
+        battery_cycle_screen_off_capacity_drop.text = "${stats.screenOffCapacityDrop}%"
         val estimateCurrent = if (stats.screenOnAvgCurrent > 0) stats.screenOnAvgCurrent else stats.avgCurrent
         battery_cycle_remaining_screen.text = if (batteryCapacityMAH > 0 && currentCapacity > 0 && estimateCurrent > 0) {
             val remainingMAH = if (remainingBatteryMAH > 0 && remainingBatteryMAH <= batteryCapacityMAH * 1.3) {
