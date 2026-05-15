@@ -20,6 +20,8 @@ class PowerUtilizationCurve(private val context: Context) : IEventReceiver {
     private val storage = BatteryHistoryStore(context)
     private val screenState = ScreenState(context)
     private var timer: Timer? = null
+    private val timerLock = Any()
+    private var lastAutoLogTime = 0L
     private var batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
     private var globalSPF = context.getSharedPreferences(SpfConfig.GLOBAL_SPF, Context.MODE_PRIVATE)
     private val electricityUnit = ElectricityUnit()
@@ -91,7 +93,10 @@ class PowerUtilizationCurve(private val context: Context) : IEventReceiver {
     }
 
     private fun startUpdate() {
-        if (screenState.isScreenOn()) {
+        if (!screenState.isScreenOn()) {
+            return
+        }
+        synchronized(timerLock) {
             if (timer == null) {
                 timer = Timer().apply {
                     scheduleAtFixedRate(object : TimerTask() {
@@ -128,6 +133,16 @@ class PowerUtilizationCurve(private val context: Context) : IEventReceiver {
     }
 
     private fun saveLog(screenOnOverride: Boolean? = null) {
+        val now = System.currentTimeMillis()
+        if (screenOnOverride == null) {
+            synchronized(timerLock) {
+                if (now - lastAutoLogTime < SAMPLING_INTERVAL * 2 / 3) {
+                    return
+                }
+                lastAutoLogTime = now
+            }
+        }
+
         if(GlobalStatus.batteryCapacity < 1 || GlobalStatus.batteryStatus == BatteryManager.BATTERY_STATUS_UNKNOWN) {
             updateBatteryStatus()
         } else {
@@ -142,7 +157,7 @@ class PowerUtilizationCurve(private val context: Context) : IEventReceiver {
         // 开机5分钟之内不统计耗电记录，避免刚开机时系统服务繁忙导致数据不准确
         // if (SystemClock.elapsedRealtime() > 300000L) {
             val status = BatteryStatus().apply {
-                time = System.currentTimeMillis()
+                time = now
                 temperature = GlobalStatus.temperatureCurrent
                 status = GlobalStatus.batteryStatus
                 io = GlobalStatus.batteryCurrentNow.toInt()
@@ -158,9 +173,11 @@ class PowerUtilizationCurve(private val context: Context) : IEventReceiver {
     }
 
     private fun cancelUpdate() {
-        timer?.run {
-            cancel()
-            timer = null
+        synchronized(timerLock) {
+            timer?.run {
+                cancel()
+                timer = null
+            }
         }
     }
 }
