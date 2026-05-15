@@ -3,7 +3,6 @@ package com.omarea.data.customer
 import android.content.Context
 import android.os.BatteryManager
 import android.os.Build
-import android.os.SystemClock
 import com.omarea.data.EventType
 import com.omarea.data.GlobalStatus
 import com.omarea.data.IEventReceiver
@@ -25,6 +24,7 @@ class PowerUtilizationCurve(private val context: Context) : IEventReceiver {
     private var batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
     private var globalSPF = context.getSharedPreferences(SpfConfig.GLOBAL_SPF, Context.MODE_PRIVATE)
     private val electricityUnit = ElectricityUnit()
+    private val batteryUtils = BatteryUtils()
     companion object {
         // 采样间隔（毫秒）
         public val SAMPLING_INTERVAL: Long = 3000
@@ -162,7 +162,7 @@ class PowerUtilizationCurve(private val context: Context) : IEventReceiver {
                 status = GlobalStatus.batteryStatus
                 io = GlobalStatus.batteryCurrentNow.toInt()
                 voltage = electricityUnit.getBatteryVoltage(context).toFloat()
-                remainingMAH = BatteryUtils().getRemainingCapacityMAH(context, voltage.toDouble())
+                remainingMAH = batteryUtils.getRemainingCapacityMAH(context, voltage.toDouble())
                 screenOn = screenOnOverride ?: screenState.isScreenOn()
                 capacity = GlobalStatus.batteryCapacity
             }

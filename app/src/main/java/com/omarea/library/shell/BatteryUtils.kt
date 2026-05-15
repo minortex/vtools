@@ -37,6 +37,9 @@ class BatteryUtils {
             val value: Long
     )
 
+    private var remainingChargePath: String? = null
+    private var remainingEnergyPath: String? = null
+
     companion object {
         private var fastChargeScript = ""
         private var changeLimitRunning = false
@@ -692,8 +695,9 @@ class BatteryUtils {
                 "/sys/class/power_supply/battery/charge_counter",
                 "/sys/class/power_supply/bms/charge_now",
                 "/sys/class/power_supply/battery/charge_now"
-        ))
+        ), remainingChargePath)
         if (chargeNow != null) {
+            remainingChargePath = chargeNow.path
             return RemainingCapacityInfo(
                     normalizeCapacityMAH(chargeNow.value),
                     chargeNow.path,
@@ -706,8 +710,9 @@ class BatteryUtils {
         val energyNow = readCapacityValue(arrayOf(
                 "/sys/class/power_supply/bms/energy_now",
                 "/sys/class/power_supply/battery/energy_now"
-        ))
+        ), remainingEnergyPath)
         if (energyNow != null && voltage > 0) {
+            remainingEnergyPath = energyNow.path
             return RemainingCapacityInfo(
                     normalizeEnergyMAH(energyNow.value, voltage),
                     energyNow.path,
@@ -726,8 +731,17 @@ class BatteryUtils {
         )
     }
 
-    private fun readCapacityValue(paths: Array<String>): CapacityReadResult? {
+    private fun readCapacityValue(paths: Array<String>, preferredPath: String? = null): CapacityReadResult? {
+        if (preferredPath != null && paths.contains(preferredPath)) {
+            val preferredValue = KernelProrp.getProp(preferredPath).trim()
+            if (Regex("^[0-9]+").matches(preferredValue)) {
+                return CapacityReadResult(preferredPath, preferredValue.toLong())
+            }
+        }
         for (path in paths) {
+            if (path == preferredPath) {
+                continue
+            }
             val value = KernelProrp.getProp(path).trim()
             if (Regex("^[0-9]+").matches(value)) {
                 return CapacityReadResult(path, value.toLong())

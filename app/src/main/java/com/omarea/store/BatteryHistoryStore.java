@@ -56,7 +56,7 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
 
     public boolean insertHistory(BatteryStatus batteryStatus) {
         SQLiteDatabase database = getWritableDatabase();
-        getWritableDatabase().beginTransaction();
+        database.beginTransaction();
         try {
             database.execSQL(
                 "insert into battery_io(time, temperature, status, mode, io, voltage, remaining_mah, package, screen_on, capacity) " +
@@ -83,7 +83,7 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
 
     public int getMaxTemperature() {
         SQLiteDatabase database = getWritableDatabase();
-        getWritableDatabase().beginTransaction();
+        database.beginTransaction();
         try {
             Cursor cursor = database.rawQuery("select max(temperature) AS io from battery_io", new String[]{});
             ArrayList<BatteryAvgStatus> data = new ArrayList<>();
@@ -119,7 +119,7 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
 
     public int getMaxIO(int batteryStatus) {
         SQLiteDatabase database = getWritableDatabase();
-        getWritableDatabase().beginTransaction();
+        database.beginTransaction();
         try {
             Cursor cursor = database.rawQuery("select max(io) AS io from battery_io where status = ? ", new String[]{
                     "" + batteryStatus
@@ -139,7 +139,7 @@ public class BatteryHistoryStore extends SQLiteOpenHelper {
 
     public int getMinIO(int batteryStatus) {
         SQLiteDatabase database = getWritableDatabase();
-        getWritableDatabase().beginTransaction();
+        database.beginTransaction();
         try {
             Cursor cursor = database.rawQuery("select min(io) AS io from battery_io where status = ? ", new String[]{
                     "" + batteryStatus
