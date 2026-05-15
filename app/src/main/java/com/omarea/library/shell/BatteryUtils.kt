@@ -8,6 +8,7 @@ import com.omarea.common.shared.FileWrite
 import com.omarea.common.shell.KeepShellPublic
 import com.omarea.common.shell.KernelProrp
 import com.omarea.common.shell.RootFile
+import com.omarea.library.device.BatteryCapacity
 import com.omarea.model.BatteryStatus
 
 /**
@@ -15,6 +16,27 @@ import com.omarea.model.BatteryStatus
  */
 
 class BatteryUtils {
+    data class RemainingCapacityInfo(
+            val valueMAH: Double,
+            val source: String,
+            val rawValue: Long,
+            val reason: String,
+            val options: List<String>
+    )
+
+    data class BatteryValueInfo(
+            val value: Double,
+            val source: String,
+            val rawValue: String,
+            val reason: String,
+            val options: List<String>
+    )
+
+    private data class CapacityReadResult(
+            val path: String,
+            val value: Long
+    )
+
     companion object {
         private var fastChargeScript = ""
         private var changeLimitRunning = false
@@ -518,6 +540,15 @@ class BatteryUtils {
 
     // 从内核读取可以精确到0.01的电量，但有些内核数值是错的，所以需要和系统反馈的电量(approximate)比对，如果差距太大则认为内核数值无效，不再读取
     public fun getKernelCapacity(approximate: Int): Float {
+        val info = getKernelCapacityInfo(approximate)
+        return if (info.source == "/sys/class/power_supply/bms/capacity_raw") {
+            info.value.toFloat()
+        } else {
+            -1f
+        }
+    }
+
+    public fun getKernelCapacityInfo(approximate: Int): BatteryValueInfo {
         if (kernelCapacitySupported == null) {
             kernelCapacitySupported = RootFile.fileExists("/sys/class/power_supply/bms/capacity_raw")
         }
@@ -532,59 +563,177 @@ class BatteryUtils {
                     raw.toFloat()
                 }
                 // 如果和系统反馈的电量差距超过5%，则认为数值无效，不再读取
-                return if (Math.abs(valueMA - approximate) > 5) {
+                if (Math.abs(valueMA - approximate) > 5) {
                     kernelCapacitySupported = false
-                    -1f
-                } else {
-                    valueMA
+                    return BatteryValueInfo(
+                            approximate.toDouble(),
+                            "BatteryManager.BATTERY_PROPERTY_CAPACITY",
+                            approximate.toString(),
+                            "capacity_raw 与系统电量差距超过 5%，已回退到系统整数百分比",
+                            listOf(
+                                    "/sys/class/power_supply/bms/capacity_raw",
+                                    "BatteryManager.BATTERY_PROPERTY_CAPACITY"
+                            )
+                    )
                 }
+                return BatteryValueInfo(
+                        valueMA.toDouble(),
+                        "/sys/class/power_supply/bms/capacity_raw",
+                        raw,
+                        "sysfs 原始电量，可精确到小数；已和系统整数电量校验",
+                        listOf(
+                                "/sys/class/power_supply/bms/capacity_raw",
+                                "BatteryManager.BATTERY_PROPERTY_CAPACITY"
+                        )
+                )
             } catch (ex: java.lang.Exception) {
                 kernelCapacitySupported = false
             }
         }
-        return -1f
+        return BatteryValueInfo(
+                approximate.toDouble(),
+                "BatteryManager.BATTERY_PROPERTY_CAPACITY",
+                approximate.toString(),
+                "没有可用的 capacity_raw，使用 Android API 的整数电量百分比",
+                listOf(
+                        "/sys/class/power_supply/bms/capacity_raw",
+                        "BatteryManager.BATTERY_PROPERTY_CAPACITY"
+                )
+        )
+    }
+
+    public fun getFullCapacityInfo(context: Context): BatteryValueInfo {
+        val options = listOf(
+                "/sys/class/power_supply/battery/charge_full_design",
+                "/sys/class/power_supply/bms/charge_full_design",
+                "/sys/class/power_supply/battery/charge_full",
+                "/sys/class/power_supply/bms/charge_full",
+                "PowerProfile.getBatteryCapacity()"
+        )
+        val fullDesign = readCapacityValue(arrayOf(
+                "/sys/class/power_supply/battery/charge_full_design",
+                "/sys/class/power_supply/bms/charge_full_design"
+        ))
+        if (fullDesign != null) {
+            return BatteryValueInfo(
+                    normalizeCapacityMAH(fullDesign.value),
+                    fullDesign.path,
+                    fullDesign.value.toString(),
+                    "sysfs 设计容量，适合把 mAh 换算为百分比；通过 shell 读取",
+                    options
+            )
+        }
+
+        val full = readCapacityValue(arrayOf(
+                "/sys/class/power_supply/battery/charge_full",
+                "/sys/class/power_supply/bms/charge_full"
+        ))
+        if (full != null) {
+            return BatteryValueInfo(
+                    normalizeCapacityMAH(full.value),
+                    full.path,
+                    full.value.toString(),
+                    "sysfs 当前满充容量，考虑了电池老化；通过 shell 读取",
+                    options
+            )
+        }
+
+        val powerProfile = BatteryCapacity().getBatteryCapacity(context)
+        if (powerProfile > 0) {
+            return BatteryValueInfo(
+                    powerProfile,
+                    "PowerProfile.getBatteryCapacity()",
+                    powerProfile.toString(),
+                    "系统 power_profile 容量，通常为厂商配置值；无需 root、无需 shell",
+                    options
+            )
+        }
+
+        return BatteryValueInfo(
+                0.0,
+                "不可用",
+                "0",
+                "sysfs 和 PowerProfile 都没有返回有效电池容量",
+                options
+        )
     }
 
     public fun getRemainingCapacityMAH(context: Context, voltage: Double): Double {
-        val chargeNow = readCapacityValue(arrayOf(
+        return getRemainingCapacityInfo(context, voltage).valueMAH
+    }
+
+    public fun getRemainingCapacityInfo(context: Context, voltage: Double): RemainingCapacityInfo {
+        val options = listOf(
+                "BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER",
+                "/sys/class/power_supply/bms/charge_counter",
+                "/sys/class/power_supply/battery/charge_counter",
                 "/sys/class/power_supply/bms/charge_now",
                 "/sys/class/power_supply/battery/charge_now",
+                "/sys/class/power_supply/bms/energy_now",
+                "/sys/class/power_supply/battery/energy_now"
+        )
+        try {
+            val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+            val chargeCounter = batteryManager.getLongProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER)
+            if (chargeCounter > 0) {
+                return RemainingCapacityInfo(
+                        normalizeCapacityMAH(chargeCounter),
+                        "BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER",
+                        chargeCounter,
+                        "Android API，直接返回剩余电荷；无需 root、无需 shell，读取开销最低",
+                        options
+                )
+            }
+        } catch (ex: Exception) {
+        }
+
+        val chargeNow = readCapacityValue(arrayOf(
                 "/sys/class/power_supply/bms/charge_counter",
-                "/sys/class/power_supply/battery/charge_counter"
+                "/sys/class/power_supply/battery/charge_counter",
+                "/sys/class/power_supply/bms/charge_now",
+                "/sys/class/power_supply/battery/charge_now"
         ))
-        if (chargeNow > 0) {
-            return normalizeCapacityMAH(chargeNow)
+        if (chargeNow != null) {
+            return RemainingCapacityInfo(
+                    normalizeCapacityMAH(chargeNow.value),
+                    chargeNow.path,
+                    chargeNow.value,
+                    "sysfs 剩余电荷节点，精度通常可靠；当前通过 shell 读取，开销高于 Android API",
+                    options
+            )
         }
 
         val energyNow = readCapacityValue(arrayOf(
                 "/sys/class/power_supply/bms/energy_now",
                 "/sys/class/power_supply/battery/energy_now"
         ))
-        if (energyNow > 0 && voltage > 0) {
-            return normalizeEnergyMAH(energyNow, voltage)
+        if (energyNow != null && voltage > 0) {
+            return RemainingCapacityInfo(
+                    normalizeEnergyMAH(energyNow.value, voltage),
+                    energyNow.path,
+                    energyNow.value,
+                    "sysfs 剩余能量节点，需要按当前电压换算成 mAh；会受电压波动影响",
+                    options
+            )
         }
 
-        return try {
-            val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-            val chargeCounter = batteryManager.getLongProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER)
-            if (chargeCounter > 0) {
-                normalizeCapacityMAH(chargeCounter)
-            } else {
-                0.0
-            }
-        } catch (ex: Exception) {
-            0.0
-        }
+        return RemainingCapacityInfo(
+                0.0,
+                "不可用",
+                0,
+                "BatteryManager 和已知 sysfs 节点都没有返回有效剩余电量",
+                options
+        )
     }
 
-    private fun readCapacityValue(paths: Array<String>): Long {
+    private fun readCapacityValue(paths: Array<String>): CapacityReadResult? {
         for (path in paths) {
             val value = KernelProrp.getProp(path).trim()
             if (Regex("^[0-9]+").matches(value)) {
-                return value.toLong()
+                return CapacityReadResult(path, value.toLong())
             }
         }
-        return 0
+        return null
     }
 
     private fun normalizeCapacityMAH(value: Long): Double {

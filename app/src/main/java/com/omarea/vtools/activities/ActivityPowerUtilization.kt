@@ -1,6 +1,7 @@
 package com.omarea.vtools.activities
 
 import android.content.Intent
+import android.content.Context
 import android.os.BatteryManager
 import android.os.Bundle
 import android.os.Handler
@@ -13,11 +14,13 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.omarea.common.ui.DialogHelper
 import com.omarea.data.customer.PowerUtilizationCurve
 import com.omarea.data.GlobalStatus
 import com.omarea.library.device.BatteryCapacity
 import com.omarea.library.shell.BatteryUtils
 import com.omarea.store.BatteryHistoryStore
+import com.omarea.store.SpfConfig
 import com.omarea.ui.power.AdapterBatteryStats
 import com.omarea.utils.ElectricityUnit
 import com.omarea.vtools.R
@@ -84,6 +87,9 @@ class ActivityPowerUtilization : ActivityBase() {
                 Toast.makeText(context, "统计记录已清理", Toast.LENGTH_SHORT).show()
                 updateUI()
             }
+            R.id.action_battery_debug -> {
+                showBatteryDebugInfo()
+            }
         }
         return super.onOptionsItemSelected(item)
     }
@@ -91,11 +97,70 @@ class ActivityPowerUtilization : ActivityBase() {
     private var batteryUtils = BatteryUtils()
     private val electricityUnit = ElectricityUnit()
     private val handler = Handler(Looper.getMainLooper())
+
+    private fun showBatteryDebugInfo() {
+        val batteryManager = getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+        val voltage = GlobalStatus.batteryVoltage
+        val remainingInfo = batteryUtils.getRemainingCapacityInfo(this, voltage)
+        val currentCapacity = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+        val capacityInfo = batteryUtils.getKernelCapacityInfo(currentCapacity)
+        val fullCapacityInfo = batteryUtils.getFullCapacityInfo(this)
+        val rawCurrent = batteryManager.getLongProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
+        val currentUnit = getSharedPreferences(SpfConfig.GLOBAL_SPF, Context.MODE_PRIVATE).getInt(
+                SpfConfig.GLOBAL_SPF_CURRENT_NOW_UNIT,
+                SpfConfig.GLOBAL_SPF_CURRENT_NOW_UNIT_DEFAULT
+        )
+        val currentMA = if (currentUnit != 0) rawCurrent / currentUnit else 0
+        val estimatedMAH = if (fullCapacityInfo.value > 0 && currentCapacity > 0) {
+            fullCapacityInfo.value * currentCapacity / 100.0
+        } else {
+            0.0
+        }
+        val message = StringBuilder()
+                .append("剩余 mAh：\n")
+                .append(remainingInfo.source).append("\n\n")
+                .append("原始值：").append(remainingInfo.rawValue).append("\n")
+                .append("换算值：").append(String.format(Locale.getDefault(), "%.1fmAh", remainingInfo.valueMAH)).append("\n")
+                .append("说明：").append(remainingInfo.reason).append("\n")
+                .append("可选来源：\n").append(remainingInfo.options.joinToString("\n")).append("\n\n")
+                .append("电量百分比：\n")
+                .append(capacityInfo.source).append("\n")
+                .append("原始值：").append(capacityInfo.rawValue).append("\n")
+                .append("显示值：").append(String.format(Locale.getDefault(), "%.2f%%", capacityInfo.value)).append("\n")
+                .append("说明：").append(capacityInfo.reason).append("\n")
+                .append("可选来源：\n").append(capacityInfo.options.joinToString("\n")).append("\n\n")
+                .append("电池容量：\n")
+                .append(fullCapacityInfo.source).append("\n")
+                .append("原始值：").append(fullCapacityInfo.rawValue).append("\n")
+                .append("换算值：").append(String.format(Locale.getDefault(), "%.1fmAh", fullCapacityInfo.value)).append("\n")
+                .append("按系统百分比估算剩余：").append(String.format(Locale.getDefault(), "%.1fmAh", estimatedMAH)).append("\n")
+                .append("说明：").append(fullCapacityInfo.reason).append("\n")
+                .append("可选来源：\n").append(fullCapacityInfo.options.joinToString("\n")).append("\n\n")
+                .append("电流：\n")
+                .append("BatteryManager.BATTERY_PROPERTY_CURRENT_NOW\n")
+                .append("原始值：").append(rawCurrent).append("\n")
+                .append("单位换算：/ ").append(currentUnit).append("\n")
+                .append("换算值：").append(currentMA).append("mA\n")
+                .append("说明：Android API 读取；实际显示值会受当前单位校准影响\n")
+                .append("可选来源：\n")
+                .append("BatteryManager.BATTERY_PROPERTY_CURRENT_NOW\n\n")
+                .append("电压：\n")
+                .append("ACTION_BATTERY_CHANGED / EXTRA_VOLTAGE\n")
+                .append("当前值：").append(voltage).append("V\n")
+                .append("说明：Android 广播值，无需 root、无需 shell；用于 W 和 energy_now 换算\n")
+                .append("可选来源：\n")
+                .append("ACTION_BATTERY_CHANGED / EXTRA_VOLTAGE")
+                .toString()
+
+        DialogHelper.helpInfo(this, "耗电统计调试", message)
+    }
+
     private fun updateUI() {
         val level = GlobalStatus.batteryCapacity
         val temp = GlobalStatus.updateBatteryTemperature()
         val kernelCapacity = batteryUtils.getKernelCapacity(level)
-        val batteryCapacityMAH = BatteryCapacity().getBatteryCapacity(this)
+        val fullCapacityInfo = batteryUtils.getFullCapacityInfo(this)
+        val batteryCapacityMAH = if (fullCapacityInfo.value > 0) fullCapacityInfo.value else BatteryCapacity().getBatteryCapacity(this)
         val batteryMAH = batteryCapacityMAH.toInt().toString() + "mAh" + "   "
         val voltage = GlobalStatus.batteryVoltage
         val remainingBatteryMAH = batteryUtils.getRemainingCapacityMAH(this, voltage)
