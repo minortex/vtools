@@ -93,7 +93,7 @@
             android:layout_gravity="center"
             android:textAlignment="center"
             android:text="--"
-            android:minWidth="34dp"
+            android:minWidth="88dp"
             android:textColor="#ffffff"
             android:fontFamily="monospace"
             android:textSize="8dp"
