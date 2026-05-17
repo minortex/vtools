@@ -2,10 +2,37 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
+def signingProperties = new Properties()
+def signingPropertiesFile = rootProject.file('keystore.properties')
+if (signingPropertiesFile.exists()) {
+    signingPropertiesFile.withInputStream { signingProperties.load(it) }
+}
+
+def signingValue = { name ->
+    if (project.hasProperty(name)) {
+        return project.property(name)
+    }
+    if (signingProperties.containsKey(name)) {
+        return signingProperties.getProperty(name)
+    }
+    return System.getenv("SCENE_${name}".toString())
+}
+
+def releaseStoreFile = signingValue('RELEASE_STORE_FILE')
+def releaseStorePassword = signingValue('RELEASE_STORE_PASSWORD')
+def releaseKeyAlias = signingValue('RELEASE_KEY_ALIAS')
+def releaseKeyPassword = signingValue('RELEASE_KEY_PASSWORD')
+def releaseSigningValues = [releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword]
+def releaseSigningConfigured = releaseSigningValues.every { it }
+if (!releaseSigningConfigured && releaseSigningValues.any { it }) {
+    throw new GradleException('Incomplete release signing config. Required: RELEASE_STORE_FILE, RELEASE_STORE_PASSWORD, RELEASE_KEY_ALIAS, RELEASE_KEY_PASSWORD.')
+}
+
 android {
     applicationVariants.all { variant ->
         variant.outputs.all {
-            def fileName = "Scene" + "_${defaultConfig.versionName}_${defaultConfig.versionCode}_" + variant.name + ".apk"
+            def signingSuffix = (!releaseSigningConfigured && variant.buildType.name.startsWith('release')) ? '_unsigned' : ''
+            def fileName = "Scene" + "_${defaultConfig.versionName}_${defaultConfig.versionCode}_" + variant.name + signingSuffix + ".apk"
             outputFileName = fileName
         }
     }
@@ -13,11 +40,13 @@ android {
         enabled =true
     }
     signingConfigs {
-        omarea_Signing {
-            keyAlias 'omarea.com'
-            keyPassword 'asdf1234'
-            storeFile file('./omoarea-test.jks')
-            storePassword 'asdf1234'
+        if (releaseSigningConfigured) {
+            release {
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+                storeFile rootProject.file(releaseStoreFile)
+                storePassword releaseStorePassword
+            }
         }
     }
     compileSdkVersion 30
@@ -46,7 +75,9 @@ android {
             zipAlignEnabled true
             debuggable false
             jniDebuggable = false
-            signingConfig signingConfigs.omarea_Signing
+            if (releaseSigningConfigured) {
+                signingConfig signingConfigs.release
+            }
         }
         release_mini {
             shrinkResources true
@@ -55,9 +86,11 @@ android {
             minifyEnabled true
             debuggable false
             jniDebuggable = false
+            if (releaseSigningConfigured) {
+                signingConfig signingConfigs.release
+            }
         }
         debug {
-            signingConfig signingConfigs.omarea_Signing
             minifyEnabled false
             debuggable true
             jniDebuggable = false
